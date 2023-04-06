@@ -50,7 +50,7 @@ python3 manage.py runserver
 
 ### Аутентификация 
 
-1. Выполнить POST-запрос http://localhost:8000/api/v1/token/ передав поля username и password.
+1. Выполнить POST-запрос http://localhost:8000/api/v1/jwt/create/ передав поля username и password.
 
 2. Получить от API JWT-токен в формате:
 
