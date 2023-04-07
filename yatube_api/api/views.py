@@ -56,17 +56,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 class FollowViewSet(viewsets.ModelViewSet):
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    search_fields = ['following__username']
+    search_fields = ['user']
 
     def get_queryset(self):
         """Метод получения определенного автора."""
-        user = get_object_or_404(User, user=self.request.user)
+        user = get_object_or_404(User, username=self.request.user)
         return user.follower.all()
 
     def perform_create(self, serializer):
         """Метод создания подписки на автора."""
-        serializer.save(username=self.request.user)
+        serializer.save(user=self.request.user)
 
