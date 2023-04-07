@@ -1,11 +1,13 @@
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
 
 
-from posts.models import Comment, Group, Follow, Post
+from posts.models import Comment, Group, Follow, Post, User
 
 
 class PostSerializer(serializers.ModelSerializer):
+    """Сериалайзер для модели постов."""
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
@@ -14,13 +16,14 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
-
+    """Сериалайзер для модели групп."""
     class Meta:
         fields = '__all__'
         model = Group
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериалайзер для комментариев."""
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
@@ -31,13 +34,32 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    """Сериалайзер для модели подписок на авторов.."""
     following = serializers.SlugRelatedField(
-        read_only=True, slug_field='following'
+        slug_field='username',
+        read_only=False,
+        queryset=User.objects.all()
     )
     user = serializers.SlugRelatedField(
-        read_only=True, slug_field='follower'
+        read_only=True,
+        slug_field='username',
+        default=CurrentUserDefault()
     )
 
     class Meta:
         fields = '__all__'
         model = Follow
+        validators = (
+                serializers.UniqueTogetherValidator(
+                    queryset=Follow.objects.all(),
+                    fields=('following', 'user'),
+                    message='Вы уже подписаны на этого автора!'
+                ),
+        )
+
+    def validate(self, data):
+        """Проверка подписки на самого себя."""
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя!')
+        return data
