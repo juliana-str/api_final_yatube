@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -13,7 +13,23 @@ from .serializers import (PostSerializer, GroupSerializer,
 from posts.models import Post, Group, Follow, User
 
 
-class PostViewSet(viewsets.ModelViewSet):
+class CreateListRetrieveViewSet(mixins.CreateModelMixin,
+                                mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                viewsets.GenericViewSet):
+    """Вьюсет для методов просмотра и создания."""
+    pass
+
+
+class UpdateDeleteViewSet(mixins.UpdateModelMixin,
+                          mixins.DestroyModelMixin,
+                          viewsets.GenericViewSet):
+    """Вьюсет для методов изменения и удаления."""
+    pass
+
+
+class PostViewSet(CreateListRetrieveViewSet,
+                  UpdateDeleteViewSet):
     """Вьюсет для просмотра, создания, изменения, удаления постов."""
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -34,10 +50,12 @@ class GroupViewSet(ReadOnlyModelViewSet):
     pagination_class = LimitOffsetPagination
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(CreateListRetrieveViewSet,
+                     UpdateDeleteViewSet):
     """Вьюсет для просмотра, создания, изменения, удаления комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -53,13 +71,15 @@ class CommentViewSet(viewsets.ModelViewSet):
                         ))
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(mixins.RetrieveModelMixin,
+                    mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
-    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly,)
+    permission_classes = (IsAuthenticated,)
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    search_fields = ['user']
+    search_fields = ('following__username',)
 
     def get_queryset(self):
         """Метод получения определенного автора."""
@@ -69,4 +89,3 @@ class FollowViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Метод создания подписки на автора."""
         serializer.save(user=self.request.user)
-
