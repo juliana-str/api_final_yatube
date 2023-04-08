@@ -3,14 +3,16 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import viewsets, mixins
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly,
+    IsAuthenticated)
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework import filters
 
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (PostSerializer, GroupSerializer,
                           CommentSerializer, FollowSerializer)
-from posts.models import Post, Group, Follow, User
+from posts.models import Post, Group, User
 
 
 class CreateListRetrieveViewSet(mixins.CreateModelMixin,
