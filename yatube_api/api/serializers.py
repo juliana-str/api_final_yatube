@@ -8,7 +8,10 @@ from posts.models import Comment, Group, Follow, Post, User
 
 class PostSerializer(serializers.ModelSerializer):
     """Сериалайзер для модели постов."""
-    author = SlugRelatedField(slug_field='username', read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
 
     class Meta:
         fields = '__all__'
@@ -27,6 +30,10 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
+    post = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='id'
+    )
 
     class Meta:
         fields = '__all__'
@@ -43,7 +50,7 @@ class FollowSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
-        default=CurrentUserDefault()
+        default=CurrentUserDefault(),
     )
 
     class Meta:
@@ -63,3 +70,4 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Нельзя подписаться на самого себя!')
         return data
+

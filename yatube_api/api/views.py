@@ -69,13 +69,12 @@ class CommentViewSet(CreateListRetrieveViewSet,
                         ))
 
 
-class FollowViewSet(mixins.RetrieveModelMixin,
+class FollowViewSet(mixins.ListModelMixin,
                     mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
-    # pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('following__username',)
 

@@ -17,7 +17,10 @@ class Group(models.Model):
 class Post(models.Model):
     """Модель создания и редактирования постов."""
     text = models.TextField()
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+        db_index=True)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='posts')
     image = models.ImageField(
@@ -61,3 +64,14 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following',
     )
+
+    class Meta:
+        constraints = [
+                models.UniqueConstraint(
+                    fields=['user', 'following'],
+                    name='unique_name_following'
+                )
+        ]
+
+    def __str__(self):
+        return self.following
