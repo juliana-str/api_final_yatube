@@ -37,7 +37,7 @@ class PostViewSet(CreateListRetrieveViewSet,
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly)
-    pagination_class = LimitOffsetPagination
+    # pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         """Метод создания поста."""
@@ -49,7 +49,7 @@ class GroupViewSet(ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    # pagination_class = LimitOffsetPagination
 
 
 class CommentViewSet(CreateListRetrieveViewSet,
@@ -58,7 +58,7 @@ class CommentViewSet(CreateListRetrieveViewSet,
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    # pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         """Метод получения определенного комментария."""
@@ -79,7 +79,7 @@ class FollowViewSet(mixins.RetrieveModelMixin,
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
-    pagination_class = LimitOffsetPagination
+    # pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('following__username',)
 
