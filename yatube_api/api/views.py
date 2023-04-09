@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import viewsets, mixins
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
     IsAuthenticated)
@@ -37,7 +36,6 @@ class PostViewSet(CreateListRetrieveViewSet,
     serializer_class = PostSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly)
-    # pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         """Метод создания поста."""
@@ -49,7 +47,6 @@ class GroupViewSet(ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    # pagination_class = LimitOffsetPagination
 
 
 class CommentViewSet(CreateListRetrieveViewSet,
@@ -58,10 +55,9 @@ class CommentViewSet(CreateListRetrieveViewSet,
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
-    # pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
-        """Метод получения определенного комментария."""
+        """Метод получения комментариев."""
         post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         return post.comments.all()
 
