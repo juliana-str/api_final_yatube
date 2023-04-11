@@ -1,36 +1,18 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
-from rest_framework import viewsets, mixins
 from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
     IsAuthenticated)
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework import filters
 
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (PostSerializer, GroupSerializer,
                           CommentSerializer, FollowSerializer)
-from posts.models import Post, Group, User
+from posts.models import Post, Group
 
 
-class CreateListRetrieveViewSet(mixins.CreateModelMixin,
-                                mixins.ListModelMixin,
-                                mixins.RetrieveModelMixin,
-                                viewsets.GenericViewSet):
-    """Вьюсет для методов просмотра и создания."""
-    pass
-
-
-class UpdateDeleteViewSet(mixins.UpdateModelMixin,
-                          mixins.DestroyModelMixin,
-                          viewsets.GenericViewSet):
-    """Вьюсет для методов изменения и удаления."""
-    pass
-
-
-class PostViewSet(CreateListRetrieveViewSet,
-                  UpdateDeleteViewSet):
+class PostViewSet(ModelViewSet):
     """Вьюсет для просмотра, создания, изменения, удаления постов."""
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -46,42 +28,40 @@ class GroupViewSet(ReadOnlyModelViewSet):
     """Вьюсет для просмотра групп."""
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
-class CommentViewSet(CreateListRetrieveViewSet,
-                     UpdateDeleteViewSet):
+class CommentViewSet(ModelViewSet):
     """Вьюсет для просмотра, создания, изменения, удаления комментариев."""
     serializer_class = CommentSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly,)
 
+    def get_post(self):
+        """Метод получения определенного поста."""
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        return post
+
     def get_queryset(self):
         """Метод получения комментариев."""
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        post = self.get_post()
         return post.comments.all()
 
     def perform_create(self, serializer):
         """Метод создания комментария."""
         serializer.save(author=self.request.user,
-                        post=get_object_or_404(
-                            Post, pk=self.kwargs.get('post_id')
-                        ))
+                        post=self.get_post())
 
 
-class FollowViewSet(mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    viewsets.GenericViewSet):
+class FollowViewSet(ModelViewSet):
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     search_fields = ('following__username',)
 
     def get_queryset(self):
         """Метод получения определенного автора."""
-        user = get_object_or_404(User, username=self.request.user)
-        return user.follower.all()
+        return self.request.user.follower.all()
 
     def perform_create(self, serializer):
         """Метод создания подписки на автора."""

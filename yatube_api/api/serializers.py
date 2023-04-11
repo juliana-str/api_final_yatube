@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-
 from posts.models import Comment, Group, Follow, Post, User
 
 
@@ -29,13 +28,10 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
-    post = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='id'
-    )
 
     class Meta:
         fields = '__all__'
+        read_only_fields = ('post', 'author')
         model = Comment
 
 
@@ -43,7 +39,6 @@ class FollowSerializer(serializers.ModelSerializer):
     """Сериалайзер для модели подписок на авторов.."""
     following = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=False,
         queryset=User.objects.all()
     )
     user = serializers.SlugRelatedField(
@@ -52,20 +47,20 @@ class FollowSerializer(serializers.ModelSerializer):
         default=CurrentUserDefault(),
     )
 
+    def validate_following(self, data):
+        """Проверка подписки на самого себя."""
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на самого себя!')
+        return data
+
     class Meta:
         fields = '__all__'
         model = Follow
         validators = (
             serializers.UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
-                fields=('following', 'user'),
+                fields=('user', 'following'),
                 message='Вы уже подписаны на этого автора!'
             ),
         )
-
-    def validate(self, data):
-        """Проверка подписки на самого себя."""
-        if self.context['request'].user == data['following']:
-            raise serializers.ValidationError(
-                'Нельзя подписаться на самого себя!')
-        return data
