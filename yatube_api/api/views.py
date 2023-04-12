@@ -4,7 +4,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
     IsAuthenticated)
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from rest_framework import filters
+from rest_framework import filters, mixins, viewsets
 
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (PostSerializer, GroupSerializer,
@@ -43,8 +43,7 @@ class CommentViewSet(ModelViewSet):
 
     def get_queryset(self):
         """Метод получения комментариев."""
-        post = self.get_post()
-        return post.comments.all()
+        return self.get_post().comments.all()
 
     def perform_create(self, serializer):
         """Метод создания комментария."""
@@ -52,7 +51,9 @@ class CommentViewSet(ModelViewSet):
                         post=self.get_post())
 
 
-class FollowViewSet(ModelViewSet):
+class FollowViewSet(mixins.ListModelMixin,
+                    mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
     """Вьюсет для просмотра, создания подписки на авторов."""
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated,)
