@@ -38,8 +38,7 @@ class CommentViewSet(ModelViewSet):
 
     def get_post(self):
         """Метод получения определенного поста."""
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return post
+        return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
 
     def get_queryset(self):
         """Метод получения комментариев."""
